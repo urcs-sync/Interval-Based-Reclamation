@@ -128,10 +128,10 @@ public:
 		uint64_t e = epoch.load(std::memory_order_acquire);
 		RCUInfo info = RCUInfo(obj,e);
 		myTrash->push_back(info);
+		retire_counters[tid]=retire_counters[tid]+1;
 		if(collect && retire_counters[tid]%freq==0){
 			empty(tid);
 		}
-		retire_counters[tid]=retire_counters[tid]+1;
 	}
 	
 	void empty(int tid){

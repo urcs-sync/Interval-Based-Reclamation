@@ -135,10 +135,10 @@ public:
 		uint64_t retire_epoch = epoch.load(std::memory_order_acquire);
 		IntervalInfo info = IntervalInfo(obj, birth_epoch, retire_epoch);
 		myTrash->push_back(info);	
+		retire_counters[tid]=retire_counters[tid]+1;
 		if(collect && retire_counters[tid]%freq==0){
 			empty(tid);
 		}
-		retire_counters[tid]=retire_counters[tid]+1;
 	}
 
 	void retire(T* obj, int tid){
