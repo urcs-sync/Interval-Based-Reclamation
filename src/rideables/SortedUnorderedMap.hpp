@@ -141,10 +141,11 @@ optional<V> SortedUnorderedMap<K,V>::put(K key, V val, int tid) {
 	while(true){
 		if(findNode(prev,cur,nxt,key,tid)){
 			res=cur->val;
-			tmpNode->next.ptr.store(cur,std::memory_order_release);
-			if(prev->ptr.compare_exchange_strong(cur,tmpNode,std::memory_order_acq_rel)){
-				while(!cur->next.ptr.compare_exchange_strong(nxt,setMk(nxt),std::memory_order_acq_rel));//mark cur
-				if(tmpNode->next.ptr.compare_exchange_strong(cur,nxt,std::memory_order_acq_rel)){
+			tmpNode->next.ptr.store(nxt,std::memory_order_release);
+			/* insert tmpNode after cur and mark cur */
+			if(cur->next.ptr.compare_exchange_strong(nxt,setMk(tmpNode),std::memory_order_acq_rel)){
+				/* detach cur */
+				if(prev->ptr.compare_exchange_strong(cur,tmpNode,std::memory_order_acq_rel)){
 					memory_tracker->retire(cur, tid);
 				}
 				else{
@@ -243,10 +244,11 @@ optional<V> SortedUnorderedMap<K,V>::replace(K key, V val, int tid) {
 	while(true){
 		if(findNode(prev,cur,nxt,key,tid)){
 			res=cur->val;
-			tmpNode->next.ptr.store(cur,std::memory_order_release);
-			if(prev->ptr.compare_exchange_strong(cur,tmpNode,std::memory_order_acq_rel)){
-				while(!cur->next.ptr.compare_exchange_strong(nxt,setMk(nxt),std::memory_order_acq_rel));//mark cur
-				if(tmpNode->next.ptr.compare_exchange_strong(cur,nxt,std::memory_order_acq_rel)){
+			tmpNode->next.ptr.store(nxt,std::memory_order_release);
+			/* insert tmpNode after cur and mark cur */
+			if(cur->next.ptr.compare_exchange_strong(nxt,setMk(tmpNode),std::memory_order_acq_rel)){
+				/* detach cur */
+				if(prev->ptr.compare_exchange_strong(cur,tmpNode,std::memory_order_acq_rel)){
 					// myHazard->(cur,tid);
 					memory_tracker->retire(cur, tid);
 				}

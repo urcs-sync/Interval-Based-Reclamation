@@ -140,13 +140,11 @@ optional<V> SortedUnorderedMapRange<K,V>::put(K key, V val, int tid) {
 		if(findNode(prev,cur,nxt,key,tid)){
 			/* found the node; replace */
 			res=cur->val;
-			tmpNode->next.ptr = cur;
-			/* insert tmpNode */
-			if(prev->ptr.CAS(cur,tmpNode,std::memory_order_acq_rel)){
-				/* mark cur */
-				while(!cur->next.ptr.CAS(nxt,setMk(nxt),std::memory_order_acq_rel));//mark cur
+			tmpNode->next.ptr = nxt;
+			/* insert tmpNode after cur and mark cur */
+			if(cur->next.ptr.CAS(nxt,setMk(tmpNode),std::memory_order_acq_rel)){
 				/* detach cur */
-				if(tmpNode->next.ptr.CAS(cur,nxt,std::memory_order_acq_rel)){
+				if(prev->ptr.CAS(cur,tmpNode,std::memory_order_acq_rel)){
 					range_tracker->retire(cur, tid);
 				}
 				else{
@@ -259,13 +257,11 @@ optional<V> SortedUnorderedMapRange<K,V>::replace(K key, V val, int tid) {
 		if(findNode(prev,cur,nxt,key,tid)){
 			/* found the node; replace */
 			res=cur->val;
-			tmpNode->next.ptr = cur;
-			/* insert tmpNode */
-			if(prev->ptr.CAS(cur,tmpNode,std::memory_order_acq_rel)){
-				/* mark cur */
-				while(!cur->next.ptr.CAS(nxt,setMk(nxt),std::memory_order_acq_rel));//mark cur
+			tmpNode->next.ptr = nxt;
+			/* insert tmpNode after cur and mark cur */
+			if(cur->next.ptr.CAS(nxt,setMk(tmpNode),std::memory_order_acq_rel)){
 				/* detach cur */
-				if(tmpNode->next.ptr.CAS(cur,nxt,std::memory_order_acq_rel)){
+				if(prev->ptr.CAS(cur,tmpNode,std::memory_order_acq_rel)){
 					range_tracker->retire(cur, tid);
 				}
 				else{
